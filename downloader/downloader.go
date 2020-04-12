@@ -81,7 +81,7 @@ func (dr *Downloader) Get() ([]os.FileInfo, error) {
 
 	ticketUrl, err := dr.getURL()
 	if err != nil {
-		dr.logger.Println(err)
+		dr.handleError(err)
 		return files, err
 	}
 
@@ -158,14 +158,14 @@ func (dr *Downloader) findLinks(rawUrl string, f func(string, string)) {
 	releaseSemaConnections()
 
 	if err != nil {
-		dr.logger.Println(err)
+		dr.handleError(err)
 		return
 	}
 	defer resp.Body.Close()
 
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
-		dr.logger.Println(err)
+		dr.handleError(err)
 		return
 	}
 
@@ -253,7 +253,7 @@ func (dr *Downloader) addFileToChannel(u, href string) {
 		}
 		dr.urlCh <- &fileToDownload
 	} else {
-		dr.logger.Println(err)
+		dr.handleError(err)
 	}
 }
 
@@ -296,6 +296,7 @@ func (dr *Downloader) downloadFile(fileToDownload *FileToDownload) (os.FileInfo,
 
 	} else if os.IsNotExist(err) {
 
+		dr.handleOutput(fmt.Sprintf("Getting a file from url: %s\n", fileToDownload.url))
 		acquireSemaConnections()
 		resp, err := dr.httpClient.Get(fileToDownload.url)
 		releaseSemaConnections()
@@ -321,6 +322,9 @@ func (dr *Downloader) downloadFile(fileToDownload *FileToDownload) (os.FileInfo,
 		}
 		f.Close()
 
+		dr.handleOutput(fmt.Sprintf("End of receiving file by url: %s\n", fileToDownload.url))
+		dr.handleOutput(fmt.Sprintf("File saved to: %s\n", fullpath))
+
 		err = os.Rename(fullpath+tempFileSuffix, fullpath)
 		if err != nil {
 			return nil, false
@@ -335,12 +339,20 @@ func (dr *Downloader) downloadFile(fileToDownload *FileToDownload) (os.FileInfo,
 
 	} else if err != nil {
 
-		dr.logger.Println(err)
-
 	}
 
 	return nil, false
 
+}
+
+func (dr *Downloader) handleError(err error) {
+	fmt.Errorf("%s", err)
+	dr.logger.Println(err)
+}
+
+func (dr *Downloader) handleOutput(text string) {
+	fmt.Print(text)
+	dr.logger.Print(text)
 }
 
 func acquireSemaConnections() {
