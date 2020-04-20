@@ -14,6 +14,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 )
 
 var releasesURL = "https://releases.1c.ru"
@@ -38,6 +39,7 @@ type Downloader struct {
 	login      string
 	password   string
 	basePath   string
+	startDate  time.Time
 	nicks      map[string]bool
 	httpClient *http.Client
 	urlCh      chan *FileToDownload
@@ -45,16 +47,17 @@ type Downloader struct {
 	logger     *log.Logger
 }
 
-func New(login, password, basePath string, nicks map[string]bool) *Downloader {
+func New(login, password, basePath string, startDate time.Time, nicks map[string]bool) *Downloader {
 
 	if len(basePath) > 0 && !os.IsPathSeparator(basePath[len(basePath)-1]) {
 		basePath += string(os.PathSeparator)
 	}
 
 	dr := &Downloader{
-		login:    login,
-		password: password,
-		basePath: basePath,
+		login:     login,
+		password:  password,
+		basePath:  basePath,
+		startDate: startDate,
 	}
 
 	if nicks != nil {
@@ -149,7 +152,7 @@ func (dr *Downloader) getURL() (string, error) {
 
 }
 
-func (dr *Downloader) findLinks(rawUrl string, f func(string, string)) {
+func (dr *Downloader) findLinks(rawUrl string, f func(string, string, *html.Node)) {
 
 	defer dr.wg.Done()
 
@@ -173,23 +176,24 @@ func (dr *Downloader) findLinks(rawUrl string, f func(string, string)) {
 
 }
 
-func (dr *Downloader) eachNode(node *html.Node, u string, f func(string, string)) {
+func (dr *Downloader) eachNode(node *html.Node, u string, f func(string, string, *html.Node)) {
 
 	if node.Type == html.ElementNode && node.Data == "a" {
 		for _, attr := range node.Attr {
 			if attr.Key == "href" {
-				f(u, attr.Val)
+				f(u, attr.Val, node)
 				break
 			}
 		}
 	}
+
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
 		dr.eachNode(c, u, f)
 	}
 
 }
 
-func (dr *Downloader) findProject(_, href string) {
+func (dr *Downloader) findProject(_, href string, _ *html.Node) {
 
 	if (dr.nicks == nil && strings.HasPrefix(href, projectHrefPrefix)) || dr.nicks[strings.ToLower(href)] {
 		dr.wg.Add(1)
@@ -198,16 +202,27 @@ func (dr *Downloader) findProject(_, href string) {
 
 }
 
-func (dr *Downloader) findVersion(_, href string) {
+func (dr *Downloader) findVersion(_, href string, node *html.Node) {
 
 	if strings.HasPrefix(href, versionFilesHrefPrefix) {
-		dr.wg.Add(1)
-		go dr.findLinks(releasesURL+href, dr.findToDownloadLink)
+
+		vDateRaw := strings.Trim(node.Parent.NextSibling.NextSibling.FirstChild.Data, " \n")
+		vDate, err := time.Parse("02.01.06", vDateRaw)
+		if err != nil {
+			dr.handleError(err)
+			return
+		}
+
+		if vDate.After(dr.startDate) {
+			dr.wg.Add(1)
+			go dr.findLinks(releasesURL+href, dr.findToDownloadLink)
+		}
+
 	}
 
 }
 
-func (dr *Downloader) findToDownloadLink(_, href string) {
+func (dr *Downloader) findToDownloadLink(_, href string, _ *html.Node) {
 
 	lowerHref := strings.ToLower(href)
 
@@ -235,7 +250,7 @@ func (dr *Downloader) findToDownloadLink(_, href string) {
 
 }
 
-func (dr *Downloader) findFileServerLink(u, href string) {
+func (dr *Downloader) findFileServerLink(u, href string, _ *html.Node) {
 
 	if strings.Contains(href, fileServerHrefPrefix) {
 		dr.addFileToChannel(u, href)
@@ -346,7 +361,7 @@ func (dr *Downloader) downloadFile(fileToDownload *FileToDownload) (os.FileInfo,
 }
 
 func (dr *Downloader) handleError(err error) {
-	fmt.Errorf("%s", err)
+	_ = fmt.Errorf("%s", err)
 	dr.logger.Println(err)
 }
 

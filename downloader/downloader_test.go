@@ -10,6 +10,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func init() {
@@ -19,8 +20,13 @@ func init() {
 func TestNewDownloader(t *testing.T) {
 	nicks := make(map[string]bool, 0)
 	nicks["erp"] = true
-	New("test", "test", "/", nil)
-	New("test", "test", "/", nicks)
+	startDate, err := time.Parse("02.01.2006", "20.01.2020")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	New("test", "test", "/", startDate, nil)
+	New("test", "test", "/", startDate, nicks)
 }
 
 func TestGet(t *testing.T) {
@@ -34,17 +40,59 @@ func TestGet(t *testing.T) {
 			fmt.Fprintln(w, "<a href=\"/project/test2\"/>")
 			fmt.Fprintln(w, "<a href=\"/project/test3\"/>")
 		} else if strings.Contains(r.RequestURI, "project/test1") {
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test1&ver=1.0\"/>")
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test1&ver=1.1\"/>")
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test1&ver=1.2\"/>")
+			fmt.Fprintln(w, "<table id=\"versionsTable\" class=\"customTable table-hover\">")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test1&ver=1.0\"/></td>",
+				"<td class=\"dateColumn\">27.04.17</td>",
+				"</tr>")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test1&ver=1.1\"/></td>",
+				"<td class=\"dateColumn\">01.09.16</td>",
+				"</tr>")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test1&ver=1.2\"/></td>",
+				"<td class=\"dateColumn\">29.12.15</td>",
+				"</tr>")
+			fmt.Fprintln(w, "</table>")
 		} else if strings.Contains(r.RequestURI, "project/test2") {
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test2&ver=1.0\"/>")
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test2&ver=1.1\"/>")
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test2&ver=1.2\"/>")
+			fmt.Fprintln(w, "<table id=\"versionsTable\" class=\"customTable table-hover\">")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test2&ver=1.0\"/></td>",
+				"<td class=\"dateColumn\">27.04.17</td>",
+				"</tr>")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test2&ver=1.1\"/></td>",
+				"<td class=\"dateColumn\">01.09.16</td>",
+				"</tr>")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test2&ver=1.2\"/></td>",
+				"<td class=\"dateColumn\">29.12.15</td>",
+				"</tr>")
+			fmt.Fprintln(w, "</table>")
 		} else if strings.Contains(r.RequestURI, "project/test3") {
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test3&ver=1.0\"/>")
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test3&ver=1.1\"/>")
-			fmt.Fprintln(w, "<a href=\"/version_files?nick=test3&ver=1.2\"/>")
+			fmt.Fprintln(w, "<table id=\"versionsTable\" class=\"customTable table-hover\">")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test3&ver=1.0\"/></td>",
+				"<td class=\"dateColumn\">27.04.17</td>",
+				"</tr>")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test3&ver=1.1\"/></td>",
+				"<td class=\"dateColumn\">01.09.16</td>",
+				"</tr>")
+			fmt.Fprintln(w,
+				"<tr>",
+				"<td class=\"versionColumn\"><a href=\"/version_files?nick=test3&ver=1.2\"/></td>",
+				"<td class=\"dateColumn\">29.12.15</td>",
+				"</tr>")
+			fmt.Fprintln(w, "</table>")
 		} else if r.URL.Path == "/releases/version_files" {
 			query, err := url.ParseQuery(r.URL.RawQuery)
 			if err != nil {
@@ -83,26 +131,44 @@ func TestGet(t *testing.T) {
 
 	defer func() { releasesURL = releasesURL_bak; loginURL = loginURL_bak }()
 
-	downldr := New("test", "test", "./", nicks)
+	startDate, err := time.Parse("02.01.2006", "01.01.2016")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	downldr := New("test", "test", "./", startDate, nicks)
 
 	files, err := downldr.Get()
 	if err != nil {
 		t.Error(err)
 	}
-	if len(files) < 6 {
-		t.Errorf("files must be 6")
+	if len(files) != 4 {
+		t.Errorf("files must be 4")
 	}
 	os.RemoveAll("./test1")
 	os.RemoveAll("./test2")
 	os.RemoveAll("./test3")
 
-	downldr = New("test", "test", "./", nil)
+	downldr = New("test", "test", "./", time.Now(), nil)
 
 	files, err = downldr.Get()
 	if err != nil {
 		t.Error(err)
 	}
-	if len(files) < 18 {
+	if len(files) != 0 {
+		t.Errorf("files must be 0")
+	}
+	os.RemoveAll("./test1")
+	os.RemoveAll("./test2")
+	os.RemoveAll("./test3")
+
+	downldr = New("test", "test", "./", time.Unix(0, 0), nil)
+
+	files, err = downldr.Get()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(files) != 18 {
 		t.Errorf("files must be 18")
 	}
 	os.RemoveAll("./test1")
@@ -112,7 +178,7 @@ func TestGet(t *testing.T) {
 
 func TestBadLogin(t *testing.T) {
 
-	downldr := New("test", "test", "/", nil)
+	downldr := New("test", "test", "/", time.Now(), nil)
 	_, err := downldr.Get()
 
 	if !(strings.Contains(err.Error(), "Incorrect login or password") ||
