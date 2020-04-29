@@ -15,6 +15,17 @@
 -log: Путь к лог файлу, в который сохраняются ошибки, по умолчанию ("./downloader.log")
 -h: Справка
 
+Команды сервиса:
+install: Установить сервис
+remove: Удалить сервис
+start: Запустить сервис
+stop: Остановить сервис
+pause: Поставить сервис на паузу (Активный процесс скачивания будет работать пока не завершится)
+continue: Продолжить работу (после паузы)
+
+Дополнительно для сервиса:
+-instance: Название сервиса (По умолчанию Downloader1C) (на случай если требуется развернуть несколько)
+
 Скомпилировано только под архитектуру win64, если нужно компилировать под другие напишите, сделаем.
 
 Console application for preparing the distribution library 1C
@@ -32,3 +43,14 @@ Optional:
 -h: Help
 
 Compiled only for win64 architecture, if you need to compile for others write, we will do it.
+
+For service:
+install: Install service
+remove: Remove service
+start: Start service
+stop: Stop service
+pause: Pause service
+continue: Continue service
+
+Additional argunments:
+-instance: Service name (default Downloader1C) (for more instances)
