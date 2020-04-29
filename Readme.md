@@ -10,6 +10,7 @@
 
 Необязательные:
 -path: Путь куда складывать скаченные дистрибутивы (по умолчанию "./")
+-startdate: Минимальная дата релиза
 -nicks: Имена приложений, разделенные запятой (например "platform83, EnterpriseERP20"), подсмотреть можно в адресе, ссылки имею вид например https://releases.1c.ru/project/EnterpriseERP20
 -log: Путь к лог файлу, в который сохраняются ошибки, по умолчанию ("./downloader.log")
 -h: Справка
@@ -25,6 +26,7 @@ Required:
 
 Optional:
 -path: The path to where to download downloaded distributions (default is "./")
+-startdate: Minimum release date
 -nicks: Application names separated by a comma (for example, "platform83, EnterpriseERP20") can be peeped at the address, the links look like for example https://releases.1c.ru/project/EnterpriseERP20
 -log: The path to the log file to which errors are saved, by default ("./downloader.log")
 -h: Help
