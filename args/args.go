@@ -31,7 +31,7 @@ func init() {
 
 	fs.StringVar(&login, "login", "", "Login to releases.1c.ru (Required)")
 	fs.StringVar(&password, "password", "", "Password to releases.1c.ru (Required)")
-	fs.StringVar(&path, "path", "."+string(os.PathSeparator), "Password to releases.1c.ru (Required)")
+	fs.StringVar(&path, "path", "."+string(os.PathSeparator), "The directory to save the archives")
 	fs.StringVar(&nicksRaw, "nicks", "", "Comma separated string (example: platform83, EnterpriseERP20, hrm)")
 	fs.StringVar(&logPath, "log", "./downloader.log", "Path to log file")
 	fs.StringVar(&startDateRaw, "startdate", "", "Minimum release date (example: 01.01.2020)")
