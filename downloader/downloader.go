@@ -314,7 +314,6 @@ func (dr *Downloader) downloadFile(fileToDownload *FileToDownload) (os.FileInfo,
 		dr.handleOutput(fmt.Sprintf("Getting a file from url: %s\n", fileToDownload.url))
 		acquireSemaConnections()
 		resp, err := dr.httpClient.Get(fileToDownload.url)
-		releaseSemaConnections()
 		if err != nil {
 			return nil, false
 		}
@@ -332,6 +331,7 @@ func (dr *Downloader) downloadFile(fileToDownload *FileToDownload) (os.FileInfo,
 		defer resp.Body.Close()
 
 		_, err = io.Copy(f, resp.Body)
+		releaseSemaConnections()
 		if err != nil {
 			return nil, false
 		}
