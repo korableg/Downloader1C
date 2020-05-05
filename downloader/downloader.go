@@ -225,9 +225,10 @@ func (dr *Downloader) findVersion(_, href string, node *html.Node) {
 func (dr *Downloader) findToDownloadLink(_, href string, _ *html.Node) {
 
 	lowerHref := strings.ToLower(href)
+	isRO := strings.Contains(lowerHref, "path=ro\\")
 
 	if strings.HasSuffix(lowerHref, "rar") ||
-		strings.HasSuffix(lowerHref, "zip") ||
+		(strings.HasSuffix(lowerHref, "zip") && !isRO) ||
 		strings.HasSuffix(lowerHref, "gz") ||
 		strings.HasSuffix(lowerHref, "exe") ||
 		strings.HasSuffix(lowerHref, "msi") ||
@@ -242,7 +243,8 @@ func (dr *Downloader) findToDownloadLink(_, href string, _ *html.Node) {
 	} else if strings.HasSuffix(lowerHref, "txt") ||
 		strings.HasSuffix(lowerHref, "pdf") ||
 		strings.HasSuffix(lowerHref, "html") ||
-		strings.HasSuffix(lowerHref, "htm") {
+		strings.HasSuffix(lowerHref, "htm") ||
+		(strings.HasSuffix(lowerHref, "zip") && isRO) {
 
 		dr.addFileToChannel(href, releasesURL+href)
 
