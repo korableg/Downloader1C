@@ -21,6 +21,10 @@ var err error
 var d = 30 * time.Hour
 var ticker *time.Ticker
 
+var login, password, path string
+var startDate time.Time
+var nicks map[string]bool
+
 type elogWriterAdapter struct{}
 
 func (l *elogWriterAdapter) Write(p []byte) (int, error) {
@@ -33,13 +37,30 @@ func (s *service) Execute(args []string, r <-chan svc.ChangeRequest, changes cha
 
 	downloader.SetLogOutput(&elogWriterAdapter{})
 
-	dwnldr := initDownloader()
-	dwnldrGet := func() {
-		defer mutex.Unlock()
-		_, err = dwnldr.Get()
-		if err != nil {
-			elog.Error(1, err.Error())
-		}
+	login, err = dargs.Login()
+	if err != nil {
+		elog.Error(1, err.Error())
+		handleError(err)
+	}
+	password, err = dargs.Password()
+	if err != nil {
+		elog.Error(1, err.Error())
+		handleError(err)
+	}
+	path, err = dargs.Path()
+	if err != nil {
+		elog.Error(1, err.Error())
+		handleError(err)
+	}
+	startDate, err = dargs.StartDate()
+	if err != nil {
+		elog.Error(1, err.Error())
+		handleError(err)
+	}
+	nicks, err = dargs.Nicks()
+	if err != nil {
+		elog.Error(1, err.Error())
+		handleError(err)
 	}
 
 	changes <- svc.Status{State: svc.StartPending}
@@ -50,14 +71,14 @@ func (s *service) Execute(args []string, r <-chan svc.ChangeRequest, changes cha
 	changes <- svc.Status{State: svc.Running, Accepts: cmdsAccepted}
 
 	mutex.Lock()
-	go dwnldrGet()
+	go getFiles()
 
 loop:
 	for {
 		select {
 		case <-tick:
 			mutex.Lock()
-			go dwnldrGet()
+			go getFiles()
 		case c := <-r:
 			switch c.Cmd {
 			case svc.Interrogate:
@@ -105,33 +126,11 @@ func runService(name string, isDebug bool) {
 	elog.Info(1, fmt.Sprintf("%s service stopped", name))
 }
 
-func initDownloader() *downloader.Downloader {
-
-	login, err := dargs.Login()
+func getFiles() {
+	defer mutex.Unlock()
+	dwnldr := downloader.New(login, password, path, startDate, nicks)
+	_, err = dwnldr.Get()
 	if err != nil {
 		elog.Error(1, err.Error())
-		handleError(err)
 	}
-	password, err := dargs.Password()
-	if err != nil {
-		elog.Error(1, err.Error())
-		handleError(err)
-	}
-	path, err := dargs.Path()
-	if err != nil {
-		elog.Error(1, err.Error())
-		handleError(err)
-	}
-	startDate, err := dargs.StartDate()
-	if err != nil {
-		elog.Error(1, err.Error())
-		handleError(err)
-	}
-	nicks, err := dargs.Nicks()
-	if err != nil {
-		elog.Error(1, err.Error())
-		handleError(err)
-	}
-
-	return downloader.New(login, password, path, startDate, nicks)
 }
