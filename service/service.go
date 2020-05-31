@@ -18,7 +18,7 @@ type service struct{}
 var elog debug.Log
 var mutex sync.Mutex
 var err error
-var d = 30 * time.Hour
+var d = 30 * time.Minute
 var ticker *time.Ticker
 
 var login, password, path string

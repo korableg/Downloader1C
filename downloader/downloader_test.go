@@ -22,7 +22,7 @@ func TestNewDownloader(t *testing.T) {
 	nicks["erp"] = true
 	startDate, err := time.Parse("02.01.2006", "20.01.2020")
 	if err != nil {
-		log.Fatal(err)
+		t.Error(err)
 	}
 
 	New("test", "test", "/", startDate, nil)

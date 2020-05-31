@@ -103,7 +103,7 @@ func Instance() (string, error) {
 }
 
 func Usage(err error) {
-	fmt.Println("Downloader 1C by Dmitry Titov\nGithub: github.com/korableg/Downloader1C, E-mail: titov-de@yandex.ru")
+	fmt.Println("© Downloader 1C by Dmitry Titov\nGithub: github.com/korableg/Downloader1C, E-mail: titov-de@yandex.ru, 2020")
 	fmt.Println("Error:", err)
 	fmt.Println("Help:")
 	fs.PrintDefaults()
