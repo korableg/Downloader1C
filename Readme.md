@@ -1,4 +1,4 @@
-https://goreportcard.com/badge/github.com/korableg/Downloader1C
+[![Go Report Card](https://goreportcard.com/badge/github.com/korableg/Downloader1C)](https://goreportcard.com/report/github.com/korableg/Downloader1C)
 
 <h3>Консольное приложение для подготовки библиотеки дистрибутива 1С (полезно использовать франчам, свежие обновления всегда под рукой)</h3>
 
