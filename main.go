@@ -1,8 +1,8 @@
 package main
 
 import (
-	"Downloader1C/args"
-	"Downloader1C/downloader"
+	"korableg/Downloader1C/args"
+	"korableg/Downloader1C/downloader"
 	"log"
 )
 
